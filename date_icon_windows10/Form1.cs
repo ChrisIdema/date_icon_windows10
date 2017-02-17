@@ -8,9 +8,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-using System.Drawing;
+//using System.Drawing;
 
-using System.Threading;
+//using System.Threading;
+
+using System.Timers;
 
 namespace date_icon_windows10
 {
@@ -21,6 +23,10 @@ namespace date_icon_windows10
 
 
         //http://stackoverflow.com/questions/36379547/writing-text-to-the-system-tray-instead-of-an-icon
+        //http://stackoverflow.com/questions/12577749/display-text-over-notifyicon-icon-in-windows-application.
+
+        System.Timers.Timer timer;
+
         public void CreateTextIcon2(string str)
         {
             Font fontToUse = new Font("Microsoft Sans Serif", 16, FontStyle.Regular, GraphicsUnit.Pixel);
@@ -75,31 +81,51 @@ namespace date_icon_windows10
         }
 
 
+        static int milliseconds_to_midnight(DateTime time)
+        {
+            return 24*60*60*1000 - (time.TimeOfDay.Milliseconds+ time.TimeOfDay.Seconds*1000+ time.TimeOfDay.Minutes*1000*60+ time.TimeOfDay.Hours*1000*60*60);
+        }
+
+        void timer_init(int milliseconds)
+        {
+     
+
+
+
+            timer = new System.Timers.Timer(milliseconds);
+
+            timer.Elapsed += new ElapsedEventHandler(_timer_Elapsed);
+            timer.Enabled = true; // Enable it
+        }
+
+
+
+        void _timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            var now = DateTime.Now;
+
+            var datestring = now.ToShortDateString();
+            string day_string = now.Day.ToString().PadLeft(2, '0');
+            string month_string = now.Month.ToString().PadLeft(2, '0');
+            CreateTextIcon(day_string, month_string);
+
+            timer.Interval = milliseconds_to_midnight(now);
+        }
 
         public Form1()
         {
             InitializeComponent();
 
-            var date = DateTime.Today;
+            WindowState = FormWindowState.Minimized;
 
-            var datestring = date.ToShortDateString();
+            var now = DateTime.Now;
 
-            //var icon = GetIcon(datestring);
-
-
-            //http://stackoverflow.com/questions/12577749/display-text-over-notifyicon-icon-in-windows-application
-
-            //notifyIcon1.Visible = true;
-
-            //CreateTextIcon(datestring);
-
-            string day_string = date.Day.ToString().PadLeft(2, '0');
-            string month_string = date.Month.ToString().PadLeft(2, '0');
+            var datestring = now.ToShortDateString();
+            string day_string = now.Day.ToString().PadLeft(2, '0');
+            string month_string = now.Month.ToString().PadLeft(2, '0');
             CreateTextIcon(day_string, month_string);
 
-            WindowState = FormWindowState.Minimized;
-//
-            //new Thread
+            timer_init(milliseconds_to_midnight(now));
 
         }
 
